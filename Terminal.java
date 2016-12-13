@@ -19,8 +19,12 @@ public class Terminal{
 
     	int local_id = randInt();
     	Scanner keypad = new Scanner(System.in);
+    	int op1, op2=0;
+    	Request req = null;
+    	Response rep = null;
+    	Character character = null;
     	try{
-    		Socket socket = new Socket("localhost_"+local_id,10000);
+    		Socket socket = new Socket("localhost",10000);
         
         	if (socket != null){
 		 
@@ -34,7 +38,33 @@ public class Terminal{
 
 		 	 	* Não sei se esseé o melhor jeito, caso tenham outra ideia melhor, vamos discutir no grupo.
 		 	 */
-
+		
+			 
+			 character = new Character("id", "nome", "raça", "classe", 1, 100);
+			 do{
+			  	System.out.println(">>>>>>>>>>>>> MENU ");
+				System.out.println(" 1 lutar");
+				System.out.println("-1 para sair");
+				 
+				op1 = Integer.parseInt(keypad.next());
+			 	if(op1 == 1){
+			 		req = new Request(Request.FIGHT, character);
+			 	}
+			 
+				ObjectOutputStream obOut;
+	  			obOut = new ObjectOutputStream(socket.getOutputStream());
+	  			 
+				obOut.writeObject(req);
+		
+				ObjectInputStream obInp;
+				obInp = new ObjectInputStream(socket.getInputStream());
+			
+				rep = (Response)obInp.readObject();
+				System.out.println(rep.getMessage());
+				
+			 }while(op1!=-1);
+			 
+		 	 
             	socket.close();	
 			}
 			else{

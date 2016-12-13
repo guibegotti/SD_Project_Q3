@@ -36,7 +36,9 @@ public class Character implements java.io.Serializable
 		public float getHp(){
 	    return this.hp;
 	}
-	
+	public void setHp(float hp){
+		this.hp = hp;
+	}
 	public String toString(){
 	    return "Personagem: ["+id+"] "+name+" ("+race+", "+classType+") - Level: "+level+" - HP: "+hp+".";
 	}
