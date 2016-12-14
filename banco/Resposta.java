@@ -3,6 +3,7 @@ public class Resposta implements java.io.Serializable{
    public static final int OP_INVALIDA = 1;
    public static final int NOT_FOUND   = 2;
    public static final int SALDO_INSUFICIENTE = 3;
+   public static final int OP_INDISPONIVEL = 4;
    
    private int   resultado;
    private Conta conta;

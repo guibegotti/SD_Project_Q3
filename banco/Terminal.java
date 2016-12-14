@@ -57,7 +57,9 @@ public class Terminal{
 						req = new Requisicao(Requisicao.TRANSF_OUT, numOrigem, numDestino,codBanco,valor); 			     	
 					}
 					else if(opcao == 4){
-
+						System.out.println("Insira o numero da nova conta:");
+						int num = Integer.parseInt(teclado.next());
+						req = new Requisicao(Requisicao.NOVA_CONTA, num, 0, 0, 0);
 					}
 
 					ObjectOutputStream obOut;

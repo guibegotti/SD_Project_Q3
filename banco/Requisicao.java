@@ -4,6 +4,7 @@ public class Requisicao implements java.io.Serializable{
    public static final int CONSULTA = 3;
    public static final int TRANSF_IN   = 4;
    public static final int TRANSF_OUT  = 5;
+   public static final int NOVA_CONTA = 6;
    
    private int      codigo;
    private int contaOrigem;

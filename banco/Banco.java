@@ -4,6 +4,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Scanner;
+
+
 public class Banco{
 
 	public static void main(String args[]){
@@ -11,22 +13,29 @@ public class Banco{
 		Socket       client; 
 		HashMap<Integer,Conta> contas;
 		Scanner teclado = new Scanner(System.in);
+				
 		try{
 			System.out.println("Insira o código do banco");
 			int banco = Integer.parseInt(teclado.next());
-			server = new ServerSocket(banco);		 
-			System.out.println("LOG - Servidor no ar na porta "+banco);
+			server = new ServerSocket(0);	
+			int porta = server.getLocalPort();	 
+			System.out.println("LOG - Servidor no ar na porta "+porta);
 			contas = new HashMap<Integer, Conta>(); 
 
 			contas.put(1, new Conta(1, 10));
 			contas.put(2, new Conta(2, 20));
 
-			Socket socket2 = new Socket("localhost",9999); 
+			try{
+				Socket socket2 = new Socket("localhost",9999); 
 			
-			RequisicaoStatus r = new RequisicaoStatus(RequisicaoStatus.ONLINE, banco, banco);
-			ObjectOutputStream obOutStatus;
-			obOutStatus = new ObjectOutputStream(socket2.getOutputStream());
-			obOutStatus.writeObject(r);
+				RequisicaoStatus r = new RequisicaoStatus(RequisicaoStatus.ONLINE, banco, porta);
+				ObjectOutputStream obOutStatus;
+				obOutStatus = new ObjectOutputStream(socket2.getOutputStream());
+				obOutStatus.writeObject(r);
+			}
+			catch(Exception ex){
+				System.err.println("Banco Central indisponivel. Apenas transações internas disponiveis");
+			}
 			while(true){
 				client = server.accept();
 				System.out.println("LOG - Cliente conectado - "+client.getInetAddress().toString());
@@ -38,17 +47,21 @@ public class Banco{
 
 				int resultado=0;
 				Conta conta = contas.get(req.getContaOrigem());
-
-				if(conta!=null){
+				
+				if (req.getCodigo() == Requisicao.NOVA_CONTA){
+					contas.put(req.getContaOrigem(), new Conta(req.getContaOrigem(), 0));
+					resultado = Resposta.OP_REALIZADA;				
+				}
+				
+				else if(conta!=null){
 					switch(req.getCodigo()){
 					case Requisicao.CONSULTA:
 						resultado = Resposta.OP_REALIZADA;				 
 						break;
 					case Requisicao.SAQUE:
-						conta.setSaldo(conta.getSaldo() - req.getValor());
-						if(conta.getSaldo() >= 0){
-							contas.put(req.getContaOrigem(), conta);
+						if(conta.getSaldo() - req.getValor() >= 0){
 							resultado = Resposta.OP_REALIZADA;
+							conta.setSaldo(conta.getSaldo() - req.getValor());
 						}
 						else{
 							conta = null;
@@ -58,7 +71,6 @@ public class Banco{
 						break;
 					case Requisicao.DEPOSITO:
 						conta.setSaldo(conta.getSaldo() + req.getValor());
-						contas.put(req.getContaOrigem(), conta);
 						resultado = Resposta.OP_REALIZADA;
 
 						break;
@@ -67,19 +79,22 @@ public class Banco{
 						resultado = Resposta.OP_REALIZADA;
 						break;
 
-					case Requisicao.TRANSF_OUT:
-						conta.setSaldo(conta.getSaldo() - req.getValor());
-						if(conta.getSaldo() >= 0){
+					case Requisicao.TRANSF_OUT:									
+						if(conta.getSaldo()-req.getValor() >= 0){
 							if(req.getNumeroBanco() == 0){
-								contas.put(req.getContaOrigem(), conta);
 								Conta contaDestino = contas.get(req.getContaDestino());
-								contaDestino.setSaldo(contaDestino.getSaldo() - req.getValor());
-								contas.put(contaDestino.getNumero(), contaDestino); 
-								resultado = Resposta.OP_REALIZADA;
+								if(contaDestino!=null){
+									contaDestino.setSaldo(contaDestino.getSaldo() - req.getValor());
+									conta.setSaldo(conta.getSaldo() - req.getValor());			
+									resultado = Resposta.OP_REALIZADA;
+								}
+								else{
+									resultado = Resposta.OP_INVALIDA;
+								}
+								
 							}
 							else{
-
-								if (socket2 != null){
+								try{
 									RequisicaoStatus reqBC = new RequisicaoStatus(RequisicaoStatus.GET,req.getNumeroBanco(),  0);
 									Socket socket3= new Socket("localhost",9999); 
 									ObjectOutputStream obOutBC;
@@ -104,9 +119,16 @@ public class Banco{
 
 										Resposta repReq = (Resposta)obInpReq.readObject();
 										resultado = repReq.getResultado();
+										if(resultado == 0)
+											conta.setSaldo(conta.getSaldo() - req.getValor());			
 										socket4.close();
 									} 
 								}
+								catch(Exception ex){
+									resultado = Resposta.OP_INDISPONIVEL;
+									System.err.println("Banco Central indisponivel. Apenas transações internas disponiveis");									
+								}
+								
 							}
 						}
 						else{

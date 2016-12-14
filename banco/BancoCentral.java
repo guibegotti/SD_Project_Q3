@@ -28,9 +28,7 @@ public class BancoCentral{
 
 				switch(req.getCodigo()){
 				case RequisicaoStatus.GET:
-					System.out.println("***"+req.getNumeroBanco());
 					porta = bancos.get(req.getNumeroBanco());
-					System.out.println("___"+porta);
 					if(porta!=0){
 						resultado = RespostaStatus.FOUND;
 					}	
@@ -39,14 +37,8 @@ public class BancoCentral{
 					break;
 				case RequisicaoStatus.ONLINE:
 					bancos.put(req.getNumeroBanco(), req.getPortaBanco());
-					System.out.println("Banco "+req.getNumeroBanco()+" online");
-					/*
-				case Requisicao.DEPOSITO:
-
-				   break;
-
-				case Requisicao.TRANSF:
-					 */
+					System.out.println("LOG - Banco "+req.getNumeroBanco()+" online na porta "+req.getPortaBanco());
+				
 				default:
 					resultado = Resposta.NOT_FOUND;
 				}
@@ -54,7 +46,9 @@ public class BancoCentral{
 				ObjectOutputStream obOutput;
 				obOutput = new ObjectOutputStream(client.getOutputStream());
 				RespostaStatus rep = new RespostaStatus(resultado, porta); 
-				obOutput.writeObject(rep);           		
+				obOutput.writeObject(rep);
+				
+				for(           		
 			}	
 
 		}
