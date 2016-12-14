@@ -27,6 +27,8 @@ public class BancoCentral{
 				int resultado=0, porta =0;
 
 				switch(req.getCodigo()){
+				
+				//Retornar a porta de um banco ativo, caso esse exista
 				case RequisicaoStatus.GET:
 					porta = bancos.get(req.getNumeroBanco());
 					if(porta!=0){
@@ -35,6 +37,7 @@ public class BancoCentral{
 					else
 						resultado = RespostaStatus.NOT_FOUND;		 
 					break;
+				//Adicionar um banco a lista de bancos ativos
 				case RequisicaoStatus.ONLINE:
 					bancos.put(req.getNumeroBanco(), req.getPortaBanco());
 					System.out.println("LOG - Banco "+req.getNumeroBanco()+" online na porta "+req.getPortaBanco());
