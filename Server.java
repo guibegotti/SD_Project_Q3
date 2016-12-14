@@ -19,12 +19,10 @@ public class Server{
 				client = server.accept();
 				System.out.println("LOG - Cliente conectado - "+client.getInetAddress().toString());
 			
-				// TODO: Receber e tratar requisições
-				// Precisamos definir um protocolo com cada requisção com um id que modificará o hashmap aqui no servidor
 				ObjectInputStream obInput;
 				
 				obInput = new ObjectInputStream(client.getInputStream());
-				Request req = (Request) obInput.readObject(); // recebi o objeto requisicao
+				Request req = (Request) obInput.readObject();
 				System.out.println("LOG - Requisicao recebida - "+req.getCode());
 				
 				Character character = null;
