@@ -1,0 +1,102 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MY APP</title>
+
+  <style type="text/css">
+    li.player{
+      margin-top: 10px;
+    }
+
+    .hide{display:none;}
+
+    .blink {
+      animation: blinker 0.5s linear infinite;
+      color: red;
+    }
+
+    @keyframes blinker {  
+      50% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <% if(session.name){ %>
+    Welcome <%= session.name %> - You are Lvl: <%= session.level %> and have <%= session.hp %>/<%= session.maxhp %> <a href="/logout">Logout</a><br>
+  <% } %>
+  <% if(session.battling){ %>
+    <br><span class="current">You have an open battle with: <a href="/battle/<%= session.battling %>"><%= session.battling %></a></span>
+  <% }else { %>
+    <br><span class="current"></span>
+  <% } %>
+<br><br>
+  Players
+
+<ul class="players">
+  <% for(var i=0; i<players.length; i++) {%>
+    <% if(session.name != players[i].name ) {%>
+      <li class="player">
+        <span><%= players[i].name %> - </span>
+        <span>Lvl: <%= players[i].level %></span><br>
+        <span>HP: <%= players[i].hp %>/ <%= players[i].maxhp %> </span>
+      </li>
+
+      <button class="battle <%= (players[i].battling == null)?'':'hide' %>" name="<%= players[i].name %>">Battle!</button>
+      <span class="busy <%= (players[i].battling == null)?'hide':'' %>" name="<%= players[i].name %>">Busy battling....</span>
+
+    <% } %>
+  <% } %>
+</ul>
+
+ <script
+  src="https://code.jquery.com/jquery-2.2.4.min.js"
+  integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+  crossorigin="anonymous">
+  </script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  var socket = io();
+
+  socket.on('players',function(msg){
+      $.each(msg, function(i,data){
+        console.log(data);
+        $('button').each(function(){
+          if($(this).attr('name')==data.name){
+            if(data.status=='started')
+            $(this).addClass('hide');
+            if(data.status=='ended')
+            $(this).removeClass('hide');
+          }
+        });
+        $('span.busy').each(function(){
+          if($(this).attr('name')==data.name){
+            if(data.status=='started')
+            $(this).removeClass('hide');
+            if(data.status=='ended')
+            $(this).addClass('hide');
+          }
+        });
+
+        if('<%= session.name %>'==data.name && data.status=='ended'){
+          $('span.current').text('');
+        }
+
+        if('<%= session.name %>'==data.name && data.status=='started'){
+          $('span.current').text('');
+          $('span.current').addClass('blink');
+          $('span.current').append('You have a new battle with: <a href="/battle/'+data.with+'">'+data.with+'</a>');
+        }
+      });
+  });
+
+  $(document).ready(function(){
+    $('.battle').on('click',function(){
+      window.location.href = "/battle/"+$(this).attr('name');
+    });
+  });
+</script>
+</body>
+</html>

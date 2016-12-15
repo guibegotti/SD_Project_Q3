@@ -1,0 +1,25 @@
+{
+  "name": "sd",
+  "version": "1.0.0",
+  "description": "",
+  "main": "client.js",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "ejs": "^2.5.5",
+    "express": "^4.14.0",
+    "express-session": "^1.14.2",
+    "http": "0.0.0",
+    "mongodb": "^2.2.16",
+    "mongoose": "^4.7.2",
+    "nodemon": "^1.11.0",
+    "socket.io": "^1.7.2"
+  },
+  "devDependencies": {
+    "nodemon": "^1.11.0"
+  },
+  "scripts": {
+    "dev": "nodemon client.js"
+  },
+  "author": "",
+  "license": "ISC"
+}

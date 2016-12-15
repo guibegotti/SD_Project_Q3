@@ -1,0 +1,141 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MY APP</title>
+
+ <style type="text/css">
+
+ .disabled{
+ 	opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+ }
+
+ .oface{
+ 	position: relative;
+	width: 52px;
+	height: 67px;
+ 	background-image: url('/doomfaces.png');
+ 	background-position: -208px 0;
+ 	/*background-position: -156px -66px;*/
+ }
+
+ .myface{
+ 	position: relative;
+	width: 52px;
+	height: 67px;
+ 	background-image: url('/doomfaces.png');
+ 	background-position: -208px 0;
+ 	/*background-position: -156px -66px;*/
+ }
+ </style>
+</head>
+<body>
+  You are battling with:<br>
+  <%= player.name %> <br><div class="oface"></div>
+  Level: <%= player.level %> <br>
+  HP: <span class="ohp"><%= player.hp %></span>/  <span class="omaxhp"><%= player.maxhp %></span>
+
+  <br>
+  <br>
+
+
+  And you are<br><div class="myface"></div>
+  <%= session.name %> <br>
+  Level: <%= session.level %> <br>
+  HP: <span class="myhp"><%= session.hp %></span>/  <span class="mymaxhp"><%= session.maxhp %></span>
+
+  <br>
+  <br>
+   <% if(player.turn == 'your'){ %>
+  <span class="turn">Its <%= player.name %> turn...</span><br><br>
+  <% }else { %>
+    <span class="turn">Its your turn!</span><br><br>
+  <% } %>
+  <button class="<%= (player.turn == 'your')?'disabled':'' %>" id="attack">Attack</button>
+  <button class="<%= (player.turn == 'your')?'disabled':'' %>" id="run">Run</button><br><br>
+  <span class="message"></span>
+
+</body>
+
+ <script
+  src="https://code.jquery.com/jquery-2.2.4.min.js"
+  integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+  crossorigin="anonymous">
+  </script>
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script type="text/javascript">
+  	var socket = io();
+
+  	socket.on('battles',function(msg){
+  		$.each(msg, function(i,data){
+  			if(data.name == '<%= session.name %>'){
+  				$('span.message').text('You have lost '+data.hit+'HP');
+  				$('span.myhp').text($('span.myhp').text()-data.hit);	
+  				$('#attack').removeClass('disabled');
+			  	$('#run').removeClass('disabled');
+			  	$('span.turn').text('Its your turn!');
+			  	if(data.died == '<%= session.name %>'){
+			  		$('span.message').after('<br><span><%= player.name %> died... You won!</span><br><button id="exit">Exit</button>');
+			  		$('#attack').addClass('disabled');
+			  		$('#run').addClass('disabled');
+			  	}
+			  		
+  			}
+  		});
+  	});
+  	$(document).ready(function(){
+
+
+  		$('#run').on('click',function(){
+  			if($(this).hasClass('disabled'))
+  				return false;
+
+
+  			$.ajax({
+			  type: "POST",
+			  url: '/run',
+			  data: {name: '<%= player.name %>'},
+			  success: function(){
+			  	console.log('success');
+			  	window.location.href = "/";
+			  }
+			});
+  		});
+
+
+  		$('#attack').on('click',function(){
+  			if($(this).hasClass('disabled'))
+  				return false;
+
+  			$.ajax({
+			  type: "POST",
+			  url: '/attack',
+			  data: {name: '<%= player.name %>'},
+			  success: function(data){
+			  	console.log('success');
+			  	$('span.ohp').text(data.hp);
+			  	$('span.message').text('Your attack hit '+data.attack+'HP');
+			  	$('#attack').addClass('disabled');
+			  	$('#run').addClass('disabled');
+			  	$('span.turn').text('Its <%= player.name %> turn!');
+			  	if(data.died == '<%= player.name %>')
+			  	$('span.message').after('<br><span><%= player.name %> died... You won!</span><br><button id="exit">Exit</button>');
+			  	else if(data.died == '<%= session.name %>')
+			  		$('span.message').after('<br><span>You died... </span>');
+			  }
+			});
+  		});
+
+  		$(document).on('click','#exit',function(){
+			  	window.location.href = "/players";
+  		});
+
+  	});
+  </script>
+
+</html>
